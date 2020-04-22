@@ -136,15 +136,19 @@ class Peao(Peca):
     
 class Tabuleiro():
     def __init__(self):
-
+        #set tabuleiro
         self.tabuleiro = []
-        
         for i in range(0, 8):
             self.tabuleiro.append([])
             for j in range(0, 8):
                 self.tabuleiro[i].append(Casa())
-
+        self.setInitState()
         
+        #set configs do jogo
+        self.turno = BRANCA
+        self.historico = []
+        
+    def setInitState(self):
         self.tabuleiro[0][0].setPeca(Torre, BRANCA)
         self.tabuleiro[0][1].setPeca(Cavalo, BRANCA)
         self.tabuleiro[0][2].setPeca(Bispo, BRANCA)
@@ -178,13 +182,11 @@ class Tabuleiro():
         self.tabuleiro[7][5].setPeca(Bispo, PRETA)
         self.tabuleiro[7][6].setPeca(Cavalo, PRETA)
         self.tabuleiro[7][7].setPeca(Torre, PRETA)
-        
-        self.turno = BRANCA
+
 
     def canMove(self, i1, j1, i2, j2):
         if i1 >= 8 or i2 >= 8 or j1 >= 8 or j2 >= 8:
             return False
-
 
         if i1 < 0 or i2 < 0 or j1 < 0 or j2 < 0:
             return False
@@ -226,6 +228,8 @@ class Tabuleiro():
             self.tabuleiro[i2][j2].peca.moveu = True
             #mudar turno
             self.turno = not self.turno
+            
+            self.historico.append((i1,j1,i2,j2))
         
 
     def __str__(self):
@@ -241,7 +245,7 @@ class Tabuleiro():
 t = Tabuleiro()
 print(t)
 
-print(t)
+
 
 
 

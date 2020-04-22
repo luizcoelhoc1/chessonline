@@ -1,5 +1,9 @@
 BRANCA = True
 PRETA = False
+switcher = {
+    BRANCA: "B",
+    PRETA: "P"
+}
 
 
 class Casa():
@@ -15,13 +19,16 @@ class Casa():
         else:
             return self.peca.__str__() + " "
         
-
-
-class Torre():
+class Peca():
     def __init__(self, color):
         self.color = color
+        self.moveu = False
+        
+class Torre(Peca):
+    def __init__(self, color):
+        super().__init__(color)
     
-    def canMove(self, i1, j1, i2, j2):
+    def canMove(self, i1, j1, i2, j2, atk):
         resultado = []
         pode = False
         if i1 == i2:
@@ -42,57 +49,88 @@ class Torre():
     
     
     def __str__(self):
-        return "T" + str(self.color)
+        return "T" + switcher.get(self.color)
 
-class Cavalo():
+class Cavalo(Peca):
     def __init__(self, color):
-        self.color = color
+        super().__init__(color)
     
-    def canMove(self, i1, j1, i2, j2):
-        if i1 + 2 == i2 or i1 - 2 == i2:
-            if j1 + 1 == j2 or j1 - 1 == j2:
+    def canMove(self, i1, j1, i2, j2, atk):
+        if abs(i1-i2) is 2:
+            if abs(j1-j2) is 1:
                 return True, [], []
-        if j1 + 2 == j2 or j1 - 2 == j2:
-            if i1 + 1 == i2 or i1 - 1 == i2:
+        if abs(j1-j2) is 2:
+            if abs(i1-i2) is 1:
                 return True, [], []
         return False, [], []
         
     def __str__(self):
-        return "N" + str(self.color)
+        return "N" + switcher.get(self.color)
     
-class Bispo():
+class Bispo(Peca):
     def __init__(self, color):
-        self.color = color
+        super().__init__(color)
+    
+    def canMove(self, i1, j1, i2, j2, atk):
+        if abs(i1-i2) == abs(j1-j2):
+            casasOcupadas= []
+            if i1 < i2:
+                i1, i2 = i2, i1
+                j1, j2 = j2, j1
+            for i in range(1, abs(i1-i2)):
+                casasocupadas.append((i1+i,j1+i))
+        return False, [], []
     
     def __str__(self):
-        return "B" + str(self.color)
+        return "B" + switcher.get(self.color)
 
-class Rei():
+class Rei(Peca):
     def __init__(self, color):
-        self.color = color
-        self.moveu = False
+        super().__init__(color)
     
-    def canMove(self, i1, j1, i2, j2):
-        if abs(i1-i2) <= 1 and abs(j1-2) <= 1:
+    def canMove(self, i1, j1, i2, j2, atk):
+        if abs(i1-i2) <= 1 and abs(j1-j2) <= 1:
             return True, [], []
         return False, [], []
     
     def __str__(self):
-        return "K" + str(self.color)
+        return "K" + switcher.get(self.color)
     
-class Rainha():
+class Rainha(Peca):
     def __init__(self, color):
-        self.color = color
+        super().__init__(color)
+        self.torre = Torre(color)
+        self.bispo = Bispo(color)
     
+    def canMove(self, i1, j1, i2, j2, atk):
+        podeT, ocupT, atkT = self.torre.canMove(i1, j1, i2, j2, atk)
+        podeB, ocupB, atkB = self.bispo.canMove(i1, j1, i2, j2, atk)
+        return podeT and podeB, ocupT + ocupB, atkT + atkB
+        
     def __str__(self):
-        return "Q" + str(self.color)
+        return "Q" + switcher.get(self.color)
     
-class Peao():
+class Peao(Peca):
     def __init__(self, color):
-        self.color = color
-    
+        super().__init__(color)
+        
+    def canMove(self, i1, j1, i2, j2, atk):
+
+        cor = -1 if self.color is PRETA else 1
+        if atk:
+            if abs(j1-j2) is 1:
+                if i1 + cor == i2:
+                    return True, [], []                    
+        else:
+            if j1 == j2:
+                for move in [1, 2] if not self.moveu else [1]:
+                    if i1 + (move*cor) == i2:
+                        return True, [], []
+
+        return False, [], []
+        
     def __str__(self):
-        return "P" + str(self.color)
+        return "P" + switcher.get(self.color)
     
     
     
@@ -146,10 +184,11 @@ class Tabuleiro():
     def canMove(self, i1, j1, i2, j2):
         if i1 >= 8 or i2 >= 8 or j1 >= 8 or j2 >= 8:
             return False
-        
+
+
         if i1 < 0 or i2 < 0 or j1 < 0 or j2 < 0:
             return False
-        
+
         if self.tabuleiro[i1][j1].peca is None:
             return False
         
@@ -159,35 +198,50 @@ class Tabuleiro():
         if i1 == i2 and j1 == j2:
             return False
         
-        if self.tabuleiro[i1][j1].peca.color == self.tabuleiro[i2][j2].peca.color:
-            return False
         
-        pode, casasOcupadas, casasAtacadas = self.tabuleiro[i1][j1].peca.canMove(i1, j1, i2, j2)
+        if self.tabuleiro[i2][j2].peca is not None:
+            if self.tabuleiro[i1][j1].peca.color is self.tabuleiro[i2][j2].peca.color:
+                return False
+            atk = True
+        else: 
+            atk = False
+        
+        
+        pode, casasOcupadas, casasAtacadas = self.tabuleiro[i1][j1].peca.canMove(i1, j1, i2, j2, atk)
+    
+        if not pode:
+            return False
         
         for casa in casasOcupadas:
             if self.tabuleiro[casa[0]][casa[1]].peca is not None:
                 return False
-        
         return True
         
     
     def move(self, i1, j1, i2, j2):
         if self.canMove(i1, j1, i2, j2):
+            #mover peça
             self.tabuleiro[i2][j2].peca = self.tabuleiro[i1][j1].peca 
             self.tabuleiro[i1][j1].peca = None
+            self.tabuleiro[i2][j2].peca.moveu = True
+            #mudar turno
             self.turno = not self.turno
         
 
     def __str__(self):
-        string = ""
+        string = "   1  2  3  4  5  6  7  8\n"
         for i in range(0,8):
+            string += str(i+1) + "  "
             for j in range(0,8):
-                string += self.tabuleiro[i][j].__str__()
+                string +=  self.tabuleiro[i][j].__str__()
             string +=  "\n"
         return string
 
 
 t = Tabuleiro()
+print(t)
 
 print(t)
+
+
 

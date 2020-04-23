@@ -24,14 +24,7 @@ class Casa():
                                      )
     def setPeca(self, peca, color):
         self.peca = peca(color)
-        self.btn = sg.ReadFormButton('', 
-                                     button_color=self.color, 
-                                     image_filename=self.peca.imagefile(),
-                                     image_size=(50, 50), 
-                                     image_subsample=2, 
-                                     border_width=0,
-                                     size=(3,3)
-                                     )
+        self.btn.ImageFilename = self.peca.imagefile()
         
     def __str__(self):
         if self.peca is None:

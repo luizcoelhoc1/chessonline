@@ -6,12 +6,31 @@ switcher = {
 }
 
 
+import PySimpleGUI as sg
+
 class Casa():
-    def __init__(self):
+    def __init__(self, row, column):
         self.peca = None
-        
+        self.color = ("white", "#FFFFFF") if (row + column) % 2 == 0 else ("black", "#333333")
+
+        self.btn = sg.ReadFormButton('', 
+                                     button_color=self.color, 
+                                     image_filename="pieces/none.png",
+                                     image_size=(50, 50), 
+                                     image_subsample=2, 
+                                     border_width=0,
+                                     size=(3,3)
+                                     )
     def setPeca(self, peca, color):
         self.peca = peca(color)
+        self.btn = sg.ReadFormButton('', 
+                                     button_color=self.color, 
+                                     image_filename=self.peca.imagefile(),
+                                     image_size=(50, 50), 
+                                     image_subsample=2, 
+                                     border_width=0,
+                                     size=(3,3)
+                                     )
         
     def __str__(self):
         if self.peca is None:
@@ -23,10 +42,15 @@ class Peca():
     def __init__(self, color):
         self.color = color
         self.moveu = False
+    def imagefile(self):
+        return ("white" if self.color is BRANCA else "black") + ".png" 
         
 class Torre(Peca):
     def __init__(self, color):
         super().__init__(color)
+    
+    def imagefile(self):
+        return "pieces/rook_" + super().imagefile()
     
     def canMove(self, i1, j1, i2, j2, atk):
         resultado = []
@@ -63,7 +87,10 @@ class Cavalo(Peca):
             if abs(i1-i2) is 1:
                 return True, [], []
         return False, [], []
-        
+
+    def imagefile(self):
+        return "pieces/knight_" + super().imagefile()
+
     def __str__(self):
         return "N" + switcher.get(self.color)
     
@@ -81,6 +108,9 @@ class Bispo(Peca):
                 casasocupadas.append((i1+i,j1+i))
         return False, [], []
     
+    def imagefile(self):
+        return "pieces/bishop_" + super().imagefile()
+    
     def __str__(self):
         return "B" + switcher.get(self.color)
 
@@ -92,6 +122,9 @@ class Rei(Peca):
         if abs(i1-i2) <= 1 and abs(j1-j2) <= 1:
             return True, [], []
         return False, [], []
+    
+    def imagefile(self):
+        return "pieces/king_" + super().imagefile()
     
     def __str__(self):
         return "K" + switcher.get(self.color)
@@ -106,7 +139,10 @@ class Rainha(Peca):
         podeT, ocupT, atkT = self.torre.canMove(i1, j1, i2, j2, atk)
         podeB, ocupB, atkB = self.bispo.canMove(i1, j1, i2, j2, atk)
         return podeT and podeB, ocupT + ocupB, atkT + atkB
-        
+
+    def imagefile(self):
+        return "pieces/rook_" + super().imagefile()
+
     def __str__(self):
         return "Q" + switcher.get(self.color)
     
@@ -128,7 +164,11 @@ class Peao(Peca):
                         return True, [], []
 
         return False, [], []
-        
+
+
+    def imagefile(self):
+        return "pieces/pawn_" + super().imagefile()
+
     def __str__(self):
         return "P" + switcher.get(self.color)
     
@@ -141,7 +181,7 @@ class Tabuleiro():
         for i in range(0, 8):
             self.tabuleiro.append([])
             for j in range(0, 8):
-                self.tabuleiro[i].append(Casa())
+                self.tabuleiro[i].append(Casa(i, j))
         self.setInitState()
         
         #set configs do jogo
@@ -243,8 +283,6 @@ class Tabuleiro():
 
 
 t = Tabuleiro()
-print(t)
-
 
 
 

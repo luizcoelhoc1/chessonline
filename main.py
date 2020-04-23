@@ -11,7 +11,7 @@ import PySimpleGUI as sg
 class Casa():
     def __init__(self, row, column):
         self.peca = None
-        self.color = ("white", "#FFFFFF") if (row + column) % 2 == 0 else ("black", "#333333")
+        self.color = ("#FFFFFF", "#FFFFFF") if (row + column) % 2 == 0 else ("black", "#7e7e7e")
 
         self.btn = sg.ReadFormButton('', 
                                      button_color=self.color, 
@@ -20,6 +20,7 @@ class Casa():
                                      image_subsample=2, 
                                      border_width=0,
                                      size=(3,3)
+                                     
                                      )
     def setPeca(self, peca, color):
         self.peca = peca(color)
